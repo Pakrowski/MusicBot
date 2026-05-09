@@ -9,138 +9,162 @@
 </head>
 <body>
 
-<!-- Живой фон -->
-<div class="bg-canvas" id="bgCanvas">
-  <div class="bg-orb orb1"></div>
-  <div class="bg-orb orb2"></div>
-  <div class="bg-orb orb3"></div>
-</div>
-
 <div class="app">
 
   <!-- ══════════ TAB: ПОИСК ══════════ -->
   <div class="tab-page active" id="tabSearch">
-
-    <div class="page-header glass-bar">
+    <div class="page-header">
       <span class="page-title">Поиск</span>
     </div>
-
     <div class="search-wrap">
-      <div class="search-bar glass-input">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
+      <div class="search-bar">
+        <svg class="s-icon" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
         <input id="searchInput" type="text" placeholder="Исполнитель или трек" autocomplete="off" spellcheck="false"/>
         <button class="clear-btn" id="clearBtn" style="display:none">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
         </button>
       </div>
     </div>
-
     <div class="scroll-area" id="searchScroll">
-      <div class="placeholder" id="placeholder">
-        <div class="placeholder-icon">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-        </div>
-        <p>Найди свою музыку</p>
+      <div class="empty-state" id="placeholder">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zM9 10l12-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Найди свою музыку</span>
       </div>
       <div class="spinner-wrap" id="spinnerWrap" style="display:none"><div class="spinner"></div></div>
-      <div class="results-list" id="resultsList"></div>
+      <div class="track-list" id="resultsList"></div>
     </div>
   </div>
 
-  <!-- ══════════ TAB: ПЛЕЙЛИСТЫ ══════════ -->
-  <div class="tab-page" id="tabPlaylists">
-    <div class="page-header glass-bar">
-      <span class="page-title">Плейлисты</span>
+  <!-- ══════════ TAB: КОЛЛЕКЦИЯ ══════════ -->
+  <div class="tab-page" id="tabCollection">
+    <div class="page-header">
+      <span class="page-title">Коллекция</span>
     </div>
     <div class="scroll-area">
-      <div class="placeholder">
-        <div class="placeholder-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg></div>
-        <p>Плейлисты появятся здесь</p>
-      </div>
-    </div>
-  </div>
 
-  <!-- ══════════ TAB: ИЗБРАННОЕ ══════════ -->
-  <div class="tab-page" id="tabFavs">
-    <div class="page-header glass-bar">
-      <span class="page-title">Избранное</span>
-    </div>
-    <div class="scroll-area">
-      <div class="results-list" id="favsList"></div>
-      <div class="placeholder" id="favsPlaceholder">
-        <div class="placeholder-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
-        <p>Добавляй треки через ❤️</p>
+      <!-- Мне нравится -->
+      <div class="section-hero" id="favHero">
+        <div class="hero-heart">
+          <svg viewBox="0 0 100 100" fill="none">
+            <defs>
+              <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#ff6b6b"/>
+                <stop offset="100%" stop-color="#c0392b"/>
+              </linearGradient>
+            </defs>
+            <path d="M50 80 C50 80 15 58 15 35 C15 22 25 14 35 14 C41 14 46 17 50 22 C54 17 59 14 65 14 C75 14 85 22 85 35 C85 58 50 80 50 80Z" fill="url(#hg)"/>
+          </svg>
+        </div>
+        <div class="hero-info">
+          <div class="hero-title">Мне нравится <svg viewBox="0 0 24 24" class="hero-arrow"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg></div>
+          <div class="hero-sub" id="favCount">0 треков</div>
+        </div>
       </div>
+
+      <!-- Горизонтальный скролл избранных -->
+      <div class="horiz-scroll" id="favScrollWrap" style="display:none">
+        <div class="horiz-list" id="favHorizList"></div>
+      </div>
+
+      <!-- Список избранных треков -->
+      <div class="track-list" id="favTrackList"></div>
+      <div class="empty-state small" id="favsEmpty">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span>Добавляй треки через ♡</span>
+      </div>
+
+      <!-- Ещё у вас в коллекции -->
+      <div class="collection-section">
+        <div class="section-title">Ещё у вас в коллекции</div>
+        <div class="collection-grid">
+          <div class="collection-item" id="playlistsItem">
+            <div class="collection-thumb playlists-thumb">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <div class="collection-name">Плейлисты</div>
+            <div class="collection-sub" id="playlistCount">0 плейлистов</div>
+          </div>
+          <div class="collection-item" id="addPlaylistItem">
+            <div class="collection-thumb add-thumb">
+              <svg viewBox="0 0 24 24" fill="none"><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+            </div>
+            <div class="collection-name">Добавить</div>
+            <div class="collection-sub">плейлист</div>
+          </div>
+        </div>
+
+        <!-- Список плейлистов -->
+        <div class="track-list" id="playlistList" style="margin-top:8px"></div>
+      </div>
+
     </div>
   </div>
 
   <!-- ══════════ TAB: ПРОФИЛЬ ══════════ -->
   <div class="tab-page" id="tabProfile">
-    <div class="page-header glass-bar">
+    <div class="page-header">
       <span class="page-title">Профиль</span>
     </div>
-    <div class="scroll-area" style="padding:20px 16px; display:flex; flex-direction:column; gap:12px;">
-      <div class="profile-card glass-card">
-        <div class="profile-avatar" id="profileAvatar">?</div>
-        <div class="profile-info">
+    <div class="scroll-area" style="padding:16px">
+      <div class="profile-block glass-card">
+        <div class="profile-ava" id="profileAva">?</div>
+        <div>
           <div class="profile-name" id="profileName">Пользователь</div>
-          <div class="profile-sub">Sound Music Player</div>
+          <div class="profile-sub">Sound Music</div>
         </div>
       </div>
-      <div class="settings-group glass-card">
-        <div class="settings-item">
-          <span>Качество аудио</span><span class="settings-val">192 kbps</span>
-        </div>
-        <div class="settings-divider"></div>
-        <div class="settings-item">
-          <span>Кеш треков</span><span class="settings-val">—</span>
-        </div>
-        <div class="settings-divider"></div>
-        <div class="settings-item">
-          <span>Версия</span><span class="settings-val">1.0.0</span>
-        </div>
+      <div class="settings-block glass-card" style="margin-top:14px">
+        <div class="settings-row"><span>Качество</span><span class="s-val">192 kbps</span></div>
+        <div class="s-divider"></div>
+        <div class="settings-row"><span>Кеш</span><span class="s-val">—</span></div>
+        <div class="s-divider"></div>
+        <div class="settings-row"><span>Версия</span><span class="s-val">1.0</span></div>
       </div>
     </div>
   </div>
 
   <!-- ══════════ Мини-плеер ══════════ -->
-  <div class="mini-player glass-player" id="miniPlayer" style="display:none">
-    <div class="mini-progress" id="miniProgress" style="width:0%"></div>
-    <div class="mini-art-wrap">
-      <img class="mini-art" id="miniArt" src="" alt="" style="display:none"/>
-      <div class="mini-art-ph" id="miniArtPh"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg></div>
+  <div class="mini-player" id="miniPlayer" style="display:none">
+    <div class="mini-progress-bar"><div class="mini-progress-fill" id="miniProgressFill"></div></div>
+    <div class="mini-inner">
+      <div class="mini-art-wrap">
+        <img class="mini-art" id="miniArt" src="" style="display:none"/>
+        <div class="mini-art-ph" id="miniArtPh">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zM9 10l12-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="mini-meta">
+        <div class="mini-title" id="miniTitle">—</div>
+        <div class="mini-artist" id="miniArtist">—</div>
+      </div>
+      <button class="mini-fav" id="miniFavBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      <button class="mini-play-btn" id="miniPlayBtn">
+        <svg id="iconPlay" viewBox="0 0 24 24"><path d="M8 5.14v14l11-7-11-7z" fill="currentColor"/></svg>
+        <svg id="iconPause" viewBox="0 0 24 24" style="display:none"><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/></svg>
+      </button>
     </div>
-    <div class="mini-info">
-      <div class="mini-title" id="miniTitle">—</div>
-      <div class="mini-artist" id="miniArtist">—</div>
-    </div>
-    <button class="mini-btn" id="miniFavBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-    </button>
-    <button class="mini-btn mini-play" id="miniPlayBtn">
-      <svg id="iconPlay" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      <svg id="iconPause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-    </button>
   </div>
 
   <!-- ══════════ Tab Bar ══════════ -->
-  <nav class="tab-bar glass-tabbar">
+  <nav class="tab-bar">
     <button class="tab-btn active" data-tab="tabSearch">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <div class="tab-icon">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
       <span>Поиск</span>
     </button>
-    <button class="tab-btn" data-tab="tabPlaylists">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      <span>Плейлисты</span>
-    </button>
-    <button class="tab-btn" data-tab="tabFavs">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-      <span>Избранное</span>
+    <button class="tab-btn" data-tab="tabCollection">
+      <div class="tab-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V8l-5-5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 3v5h8M12 12v6M9 15h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <span>Коллекция</span>
     </button>
     <button class="tab-btn" data-tab="tabProfile">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <div class="tab-icon">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
       <span>Профиль</span>
     </button>
   </nav>
