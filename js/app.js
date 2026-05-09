@@ -36,14 +36,33 @@ const haptic = t => tg?.HapticFeedback?.impactOccurred(t);
 const u = tg?.initDataUnsafe?.user;
 if (u) { profileName.textContent = u.first_name||u.username||'Пользователь'; profileAva.textContent = (u.first_name||'?')[0]; }
 
-/* ─── Tabs ─────────────────────────────────────────────────── */
-document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
-  document.querySelectorAll('.tab-btn,.tab-page').forEach(el => el.classList.remove('active'));
+/* ─── Tabs + sliding indicator ─────────────────────────────── */
+const tabSlider = $('tabSlider');
+const tabBtns   = document.querySelectorAll('.tab-btn');
+
+function moveSlider(btn) {
+  const bar  = btn.closest('.tab-bar');
+  const barR = bar.getBoundingClientRect();
+  const btnR = btn.getBoundingClientRect();
+  tabSlider.style.left  = (btnR.left - barR.left) + 'px';
+  tabSlider.style.width = btnR.width + 'px';
+}
+
+tabBtns.forEach(btn => btn.addEventListener('click', () => {
+  tabBtns.forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   $(btn.dataset.tab).classList.add('active');
+  moveSlider(btn);
   if (btn.dataset.tab === 'tabCollection') renderCollection();
   haptic('light');
 }));
+
+/* Позиционируем слайдер на старте */
+requestAnimationFrame(() => {
+  const active = document.querySelector('.tab-btn.active');
+  if (active) moveSlider(active);
+});
 
 /* ─── Search ───────────────────────────────────────────────── */
 searchInput.addEventListener('input', () => {

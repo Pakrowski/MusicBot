@@ -3,15 +3,15 @@
 
 :root {
   --bg:           #000;
-  --surface:      rgba(255,255,255,0.07);
-  --surface2:     rgba(255,255,255,0.10);
-  --border:       rgba(255,255,255,0.10);
-  --blur:         blur(20px) saturate(180%);
+  --surface:      rgba(255,255,255,0.05);
+  --surface2:     rgba(255,255,255,0.08);
+  --border:       rgba(255,255,255,0.08);
+  --blur:         blur(24px) saturate(180%);
   --text1:        #fff;
-  --text2:        rgba(255,255,255,0.50);
-  --text3:        rgba(255,255,255,0.28);
+  --text2:        rgba(255,255,255,0.48);
+  --text3:        rgba(255,255,255,0.25);
   --red:          #ff453a;
-  --tabbar-h:     56px;
+  --tabbar-h:     76px;  /* pill + gap */
   --player-h:     66px;
   --safe-b:       env(safe-area-inset-bottom,0px);
   --safe-t:       env(safe-area-inset-top,0px);
@@ -171,18 +171,22 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text1);
 /* ─── Mini player ───────────────────────────────────────────── */
 .mini-player{
   position:fixed;
-  bottom:calc(var(--tabbar-h) + var(--safe-b));
-  left:0;right:0;height:var(--player-h);z-index:200;
-  background:rgba(28,28,30,0.82);
-  backdrop-filter:blur(28px) saturate(180%);
-  -webkit-backdrop-filter:blur(28px) saturate(180%);
-  border-top:1px solid var(--border);
+  bottom:calc(var(--tabbar-h) + var(--safe-b) + 6px);
+  left:12px;right:12px;
+  height:var(--player-h);z-index:200;
+  border-radius:18px;
+  background:rgba(28,28,30,0.75);
+  backdrop-filter:blur(32px) saturate(180%);
+  -webkit-backdrop-filter:blur(32px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.12);
+  box-shadow:0 8px 28px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.08);
+  overflow:hidden;
 }
-.mini-progress-bar{height:2px;background:rgba(255,255,255,0.10)}
-.mini-progress-fill{height:100%;background:rgba(255,255,255,0.7);
+.mini-progress-bar{height:2px;background:rgba(255,255,255,0.08);position:absolute;top:0;left:0;right:0}
+.mini-progress-fill{height:100%;background:rgba(255,255,255,0.6);
   transition:width .3s linear;border-radius:0 2px 2px 0}
 .mini-inner{display:flex;align-items:center;gap:11px;
-  padding:0 14px;height:calc(var(--player-h) - 2px)}
+  padding:0 12px;height:var(--player-h);}
 
 .mini-art-wrap{flex-shrink:0}
 .mini-art{width:44px;height:44px;border-radius:8px;object-fit:cover;
@@ -210,29 +214,44 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text1);
 
 /* ─── Tab bar ───────────────────────────────────────────────── */
 .tab-bar{
-  position:fixed;bottom:0;left:0;right:0;z-index:300;
-  height:calc(var(--tabbar-h) + var(--safe-b));
-  padding-bottom:var(--safe-b);
-  display:flex;
-  background:rgba(18,18,20,0.88);
-  backdrop-filter:blur(28px) saturate(160%);
-  -webkit-backdrop-filter:blur(28px) saturate(160%);
-  border-top:1px solid var(--border);
+  position:fixed;
+  bottom:calc(10px + var(--safe-b));
+  left:50%;transform:translateX(-50%);
+  z-index:300;
+  height:56px;
+  width:auto;min-width:260px;
+  padding:0 6px;
+  display:flex;align-items:center;
+  border-radius:999px;
+  background:rgba(28,28,30,0.78);
+  backdrop-filter:blur(32px) saturate(180%);
+  -webkit-backdrop-filter:blur(32px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.13);
+  box-shadow:0 8px 32px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.10);
 }
+
+/* Скользящий индикатор */
+.tab-slider{
+  position:absolute;top:6px;left:6px;
+  height:44px;border-radius:999px;
+  background:rgba(255,255,255,0.14);
+  border:1px solid rgba(255,255,255,0.16);
+  transition:left .28s cubic-bezier(.4,0,.2,1), width .28s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;
+}
+
 .tab-btn{
+  position:relative;z-index:1;
   flex:1;background:none;border:none;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;color:var(--text3);transition:color .18s,transform .12s;
-  position:relative;
+  gap:3px;color:var(--text3);
+  transition:color .2s,transform .12s;
+  padding:0 18px;height:56px;border-radius:999px;white-space:nowrap;
 }
 .tab-btn:active{transform:scale(.88)}
 .tab-btn.active{color:var(--text1)}
-.tab-btn.active::before{
-  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:28px;height:2px;background:var(--text1);border-radius:0 0 3px 3px;
-}
 .tab-icon{display:flex;align-items:center;justify-content:center}
-.tab-icon svg{width:23px;height:23px}
+.tab-icon svg{width:22px;height:22px}
 .tab-btn span{font-size:10px;font-weight:500;letter-spacing:.1px}
 
 /* ─── Profile ───────────────────────────────────────────────── */
