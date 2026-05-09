@@ -1,45 +1,68 @@
 /* ─── Telegram WebApp ──────────────────────────────────────── */
 const tg = window.Telegram?.WebApp;
-if (tg) { tg.ready(); tg.expand(); tg.setBackgroundColor('#000000'); tg.setHeaderColor('#000000'); }
+if (tg) {
+  tg.ready(); tg.expand();
+  tg.setBackgroundColor('#0a0010');
+  tg.setHeaderColor('#0a0010');
+}
 
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? window.location.origin
-  : null;
+  ? window.location.origin : null;
 
 /* ─── DOM ──────────────────────────────────────────────────── */
-const searchInput   = document.getElementById('searchInput');
-const clearBtn      = document.getElementById('clearBtn');
-const placeholder   = document.getElementById('placeholder');
-const spinnerWrap   = document.getElementById('spinnerWrap');
-const resultsList   = document.getElementById('resultsList');
-const bottomPlayer  = document.getElementById('bottomPlayer');
-const playerArt     = document.getElementById('playerArt');
-const playerArtPh   = document.getElementById('playerArtPh');
-const playerTitle   = document.getElementById('playerTitle');
-const playerArtist  = document.getElementById('playerArtist');
-const playerFav     = document.getElementById('playerFav');
-const playerPlayBtn = document.getElementById('playerPlayBtn');
-const playerIconPlay= document.getElementById('playerIconPlay');
-const playerIconPause=document.getElementById('playerIconPause');
-const bgGradient    = document.getElementById('bgGradient');
-const audio         = document.getElementById('audio');
+const $ = id => document.getElementById(id);
+const searchInput  = $('searchInput');
+const clearBtn     = $('clearBtn');
+const placeholder  = $('placeholder');
+const spinnerWrap  = $('spinnerWrap');
+const resultsList  = $('resultsList');
+const favsList     = $('favsList');
+const favsPlaceholder = $('favsPlaceholder');
+const miniPlayer   = $('miniPlayer');
+const miniArt      = $('miniArt');
+const miniArtPh    = $('miniArtPh');
+const miniTitle    = $('miniTitle');
+const miniArtist   = $('miniArtist');
+const miniFavBtn   = $('miniFavBtn');
+const miniPlayBtn  = $('miniPlayBtn');
+const iconPlay     = $('iconPlay');
+const iconPause    = $('iconPause');
+const miniProgress = $('miniProgress');
+const profileName  = $('profileName');
+const profileAvatar= $('profileAvatar');
+const audio        = $('audio');
 
 /* ─── State ────────────────────────────────────────────────── */
 const state = {
-  tracks: [],
-  currentIdx: -1,
+  tracks: [], currentIdx: -1,
   isPlaying: false,
-  favs: new Set(),
+  favs: new Map(),   // yt_id → track
   searchTimer: null,
 };
 
 /* ─── Utils ────────────────────────────────────────────────── */
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function fmt(s) {
-  if (!s) return '';
-  const m = Math.floor(s/60), sec = Math.floor(s%60);
-  return `${m}:${sec.toString().padStart(2,'0')}`;
+const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmt  = s => { if(!s) return ''; const m=Math.floor(s/60); return `${m}:${Math.floor(s%60).toString().padStart(2,'0')}`; };
+const haptic = t => tg?.HapticFeedback?.impactOccurred(t);
+
+/* ─── Profile ──────────────────────────────────────────────── */
+if (tg?.initDataUnsafe?.user) {
+  const u = tg.initDataUnsafe.user;
+  profileName.textContent = u.first_name || u.username || 'Пользователь';
+  profileAvatar.textContent = (u.first_name||'?')[0].toUpperCase();
 }
+
+/* ─── Tabs ─────────────────────────────────────────────────── */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    haptic('light');
+    if (btn.dataset.tab === 'tabFavs') renderFavs();
+  });
+});
 
 /* ─── Search ───────────────────────────────────────────────── */
 searchInput.addEventListener('input', () => {
@@ -47,37 +70,31 @@ searchInput.addEventListener('input', () => {
   clearBtn.style.display = q ? '' : 'none';
   clearTimeout(state.searchTimer);
   if (!q) { showPlaceholder(); return; }
-  state.searchTimer = setTimeout(() => search(q), 350);
+  state.searchTimer = setTimeout(() => search(q), 380);
 });
 
 clearBtn.addEventListener('click', () => {
-  searchInput.value = '';
-  clearBtn.style.display = 'none';
-  showPlaceholder();
-  searchInput.focus();
+  searchInput.value = ''; clearBtn.style.display = 'none';
+  showPlaceholder(); searchInput.focus();
 });
 
 function showPlaceholder() {
-  placeholder.style.display = '';
-  spinnerWrap.style.display = 'none';
-  resultsList.innerHTML = '';
-  state.tracks = [];
+  placeholder.style.display = ''; spinnerWrap.style.display = 'none';
+  resultsList.innerHTML = ''; state.tracks = [];
 }
 
 async function search(q) {
   placeholder.style.display = 'none';
-  spinnerWrap.style.display = '';
-  resultsList.innerHTML = '';
+  spinnerWrap.style.display = ''; resultsList.innerHTML = '';
 
   let tracks = [];
-
   if (API_BASE) {
     try {
-      const res = await fetch(`${API_BASE}/search/?q=${encodeURIComponent(q)}`);
-      const data = await res.json();
-      tracks = data.results || [];
+      const r = await fetch(`${API_BASE}/search/?q=${encodeURIComponent(q)}`);
+      tracks = (await r.json()).results || [];
     } catch { tracks = mockTracks(q); }
   } else {
+    await new Promise(r => setTimeout(r, 400));
     tracks = mockTracks(q);
   }
 
@@ -87,169 +104,159 @@ async function search(q) {
 }
 
 function mockTracks(q) {
-  return [
-    { yt_id:'m1', title: q, artist:'Artist One', duration:210, thumbnail:'' },
-    { yt_id:'m2', title: q+' (remix)', artist:'Artist Two', duration:185, thumbnail:'' },
-    { yt_id:'m3', title: q+' live', artist:'Artist Three', duration:240, thumbnail:'' },
-    { yt_id:'m4', title: 'Best of '+q, artist:'Various', duration:195, thumbnail:'' },
-    { yt_id:'m5', title: q+' acoustic', artist:'Artist Four', duration:220, thumbnail:'' },
-  ];
+  const artists = ['Drake','The Weeknd','Kendrick Lamar','Travis Scott','Post Malone'];
+  return Array.from({length:6}, (_,i) => ({
+    yt_id: `m${i}`, title: i===0 ? q : `${q} — вариант ${i+1}`,
+    artist: artists[i % artists.length], duration: 180+i*15, thumbnail:'',
+  }));
 }
 
 /* ─── Render list ──────────────────────────────────────────── */
-function renderList(tracks) {
-  if (!tracks.length) {
-    resultsList.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.4);padding:40px 16px">Ничего не найдено</div>';
-    return;
-  }
-
-  resultsList.innerHTML = tracks.map((t, i) => `
-    <div class="track-item${state.currentIdx===i?' active':''}" data-i="${i}">
-      ${t.thumbnail
-        ? `<img class="track-thumb" src="${esc(t.thumbnail)}" alt="" loading="lazy">`
-        : `<div class="track-thumb-ph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg></div>`
-      }
-      <div class="track-info">
-        <div class="track-title">${esc(t.title)}</div>
-        <div class="track-meta">${esc(t.artist)}${t.duration ? ' · '+fmt(t.duration) : ''}</div>
-      </div>
-      <button class="track-fav${state.favs.has(t.yt_id)?' active':''}" data-id="${esc(t.yt_id)}" data-i="${i}">
-        <svg viewBox="0 0 24 24" fill="${state.favs.has(t.yt_id)?'currentColor':'none'}" stroke="currentColor" stroke-width="2">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-      </button>
+function trackHTML(t, i, activeIdx) {
+  const isFav = state.favs.has(t.yt_id);
+  return `
+  <div class="track-item${activeIdx===i?' active':''}" data-i="${i}">
+    ${t.thumbnail
+      ? `<img class="track-thumb" src="${esc(t.thumbnail)}" alt="" loading="lazy">`
+      : `<div class="track-thumb-ph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg></div>`}
+    <div class="track-info">
+      <div class="track-title">${esc(t.title)}</div>
+      <div class="track-meta">${esc(t.artist)}${t.duration?' · '+fmt(t.duration):''}</div>
     </div>
-  `).join('');
+    <button class="track-fav${isFav?' active':''}" data-id="${esc(t.yt_id)}" data-i="${i}">
+      <svg viewBox="0 0 24 24" fill="${isFav?'currentColor':'none'}" stroke="currentColor" stroke-width="2">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+    </button>
+  </div>`;
+}
 
-  /* Клик по треку */
-  resultsList.querySelectorAll('.track-item').forEach(el => {
+function bindList(container, tracks) {
+  container.querySelectorAll('.track-item').forEach(el => {
     el.addEventListener('click', e => {
       if (e.target.closest('.track-fav')) return;
-      selectTrack(parseInt(el.dataset.i));
+      selectTrack(parseInt(el.dataset.i), tracks);
     });
   });
-
-  /* Клик по сердечку */
-  resultsList.querySelectorAll('.track-fav').forEach(btn => {
+  container.querySelectorAll('.track-fav').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
-      toggleFav(btn.dataset.id, parseInt(btn.dataset.i), btn);
-      if (tg) tg.HapticFeedback.impactOccurred('light');
+      toggleFav(btn.dataset.id, parseInt(btn.dataset.i), tracks, btn);
+      haptic('light');
     });
   });
 }
 
+function renderList(tracks) {
+  if (!tracks.length) {
+    resultsList.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.35);padding:48px 16px;font-size:15px">Ничего не найдено</div>';
+    return;
+  }
+  resultsList.innerHTML = tracks.map((t,i) => trackHTML(t,i,state.currentIdx)).join('');
+  bindList(resultsList, tracks);
+}
+
+function renderFavs() {
+  const tracks = [...state.favs.values()];
+  favsPlaceholder.style.display = tracks.length ? 'none' : '';
+  favsList.innerHTML = tracks.map((t,i) => trackHTML(t,i,-1)).join('');
+  bindList(favsList, tracks);
+}
+
 /* ─── Select track ─────────────────────────────────────────── */
-function selectTrack(idx) {
-  const track = state.tracks[idx];
+function selectTrack(idx, tracks) {
+  const track = (tracks || state.tracks)[idx];
   if (!track) return;
-  state.currentIdx = idx;
+  state.currentIdx = idx; state.tracks = tracks || state.tracks;
 
-  /* Обновляем активный элемент в списке */
-  resultsList.querySelectorAll('.track-item').forEach((el, i) => {
-    el.classList.toggle('active', i === idx);
-  });
+  resultsList.querySelectorAll('.track-item').forEach((el,i) => el.classList.toggle('active', i===idx));
+  updateMiniPlayer(track);
+  haptic('medium');
 
-  /* Показываем нижний плеер */
-  updateBottomPlayer(track);
-
-  /* Haptic */
-  if (tg) tg.HapticFeedback.impactOccurred('medium');
-
-  /* Отправляем данные обратно в бот — бот скачает и пришлёт аудио */
+  /* Отправляем в бот → бот пришлёт аудио в чат */
   if (tg && !track.yt_id.startsWith('m')) {
-    tg.sendData(JSON.stringify({
-      yt_id:  track.yt_id,
-      title:  track.title,
-      artist: track.artist,
-    }));
-    return; // Mini App закроется
+    tg.sendData(JSON.stringify({ yt_id: track.yt_id, title: track.title, artist: track.artist }));
+    return;
   }
 
-  /* Локальное воспроизведение (только при наличии API) */
+  /* Локальное воспроизведение */
   if (API_BASE && !track.yt_id.startsWith('m')) {
     audio.src = `${API_BASE}/stream/audio/${track.yt_id}`;
-    audio.load();
-    audio.play().catch(()=>{});
+    audio.load(); audio.play().catch(()=>{});
     setPlaying(true);
   }
 }
 
-/* ─── Bottom player ────────────────────────────────────────── */
-function updateBottomPlayer(track) {
-  bottomPlayer.style.display = '';
-  playerTitle.textContent  = track.title  || '';
-  playerArtist.textContent = track.artist || '';
-  playerFav.classList.toggle('active', state.favs.has(track.yt_id));
-  playerFav.querySelector('svg').setAttribute('fill', state.favs.has(track.yt_id) ? 'currentColor' : 'none');
+/* ─── Mini player ──────────────────────────────────────────── */
+function updateMiniPlayer(track) {
+  miniPlayer.style.display = '';
+  miniTitle.textContent  = track.title  || '';
+  miniArtist.textContent = track.artist || '';
+
+  const isFav = state.favs.has(track.yt_id);
+  miniFavBtn.classList.toggle('fav-active', isFav);
+  miniFavBtn.querySelector('svg').setAttribute('fill', isFav ? 'currentColor' : 'none');
+  miniFavBtn.querySelector('svg').setAttribute('stroke', isFav ? 'currentColor' : 'currentColor');
 
   if (track.thumbnail) {
-    playerArt.src = track.thumbnail;
-    playerArt.style.display = '';
-    playerArtPh.style.display = 'none';
-    /* Меняем фоновый gradient под цвет обложки */
-    bgGradient.style.background = `radial-gradient(ellipse 80% 60% at 50% 0%, rgba(100,60,180,0.4) 0%, #000 70%)`;
+    miniArt.src = track.thumbnail; miniArt.style.display = '';
+    miniArtPh.style.display = 'none';
   } else {
-    playerArt.style.display = 'none';
-    playerArtPh.style.display = '';
+    miniArt.style.display = 'none'; miniArtPh.style.display = '';
   }
 }
 
 function setPlaying(v) {
   state.isPlaying = v;
-  playerIconPlay.style.display  = v ? 'none' : '';
-  playerIconPause.style.display = v ? '' : 'none';
+  iconPlay.style.display  = v ? 'none' : '';
+  iconPause.style.display = v ? '' : 'none';
 }
 
-playerPlayBtn.addEventListener('click', () => {
+miniPlayBtn.addEventListener('click', () => {
   if (state.isPlaying) { audio.pause(); setPlaying(false); }
   else { audio.play().catch(()=>{}); setPlaying(true); }
-  if (tg) tg.HapticFeedback.impactOccurred('light');
+  haptic('light');
 });
 
-playerFav.addEventListener('click', () => {
-  const track = state.tracks[state.currentIdx];
-  if (!track) return;
-  toggleFav(track.yt_id, state.currentIdx, null);
-  if (tg) tg.HapticFeedback.impactOccurred('light');
+miniFavBtn.addEventListener('click', () => {
+  const t = state.tracks[state.currentIdx]; if(!t) return;
+  toggleFav(t.yt_id, state.currentIdx, state.tracks, null);
+  haptic('light');
 });
 
-/* ─── Progress bar ─────────────────────────────────────────── */
 audio.addEventListener('timeupdate', () => {
-  const pct = audio.duration ? (audio.currentTime / audio.duration * 100) : 0;
-  bottomPlayer.style.setProperty('--progress', pct + '%');
+  const pct = audio.duration ? audio.currentTime/audio.duration*100 : 0;
+  miniProgress.style.width = pct + '%';
 });
 audio.addEventListener('ended', () => setPlaying(false));
 
 /* ─── Fav ──────────────────────────────────────────────────── */
-function toggleFav(ytId, idx, btnEl) {
-  if (state.favs.has(ytId)) state.favs.delete(ytId);
-  else state.favs.add(ytId);
+function toggleFav(ytId, idx, tracks, btnEl) {
+  const track = (tracks||state.tracks)[idx];
+  if (!track) return;
   const active = state.favs.has(ytId);
+  if (active) state.favs.delete(ytId);
+  else state.favs.set(ytId, track);
+  const nowActive = !active;
 
-  /* Кнопка в списке */
-  if (btnEl) {
-    btnEl.classList.toggle('active', active);
-    btnEl.querySelector('svg').setAttribute('fill', active ? 'currentColor' : 'none');
-  }
-  /* Кнопка в плеере */
-  if (state.currentIdx === idx) {
-    playerFav.classList.toggle('active', active);
-    playerFav.querySelector('svg').setAttribute('fill', active ? 'currentColor' : 'none');
-  }
-  /* Перерисовываем элемент в списке */
-  const el = resultsList.querySelector(`.track-fav[data-i="${idx}"]`);
-  if (el && !btnEl) {
-    el.classList.toggle('active', active);
-    el.querySelector('svg').setAttribute('fill', active ? 'currentColor' : 'none');
+  const update = el => {
+    if (!el) return;
+    el.classList.toggle('active', nowActive);
+    el.querySelector('svg').setAttribute('fill', nowActive ? 'currentColor' : 'none');
+  };
+  update(btnEl);
+
+  /* обновляем кнопку в мини-плеере если этот трек играет */
+  if (state.tracks[state.currentIdx]?.yt_id === ytId) {
+    miniFavBtn.classList.toggle('fav-active', nowActive);
+    miniFavBtn.querySelector('svg').setAttribute('fill', nowActive ? 'currentColor' : 'none');
   }
 }
 
-/* ─── Авто-поиск из URL (?q=...) ──────────────────────────── */
-(function initFromUrl() {
+/* ─── Авто-поиск из URL ────────────────────────────────────── */
+(function init() {
   const q = new URLSearchParams(window.location.search).get('q');
   if (!q) return;
-  searchInput.value = q;
-  clearBtn.style.display = '';
+  searchInput.value = q; clearBtn.style.display = '';
   search(q);
 })();
