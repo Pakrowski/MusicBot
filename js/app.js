@@ -1,6 +1,19 @@
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); tg.setBackgroundColor('#000'); tg.setHeaderColor('#000'); }
 
+/* ─── Keyboard / viewport handler ─────────────────────────── */
+function updateKeyboardOffset() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  /* Keyboard height = visible viewport bottom relative to layout viewport bottom */
+  const kbH = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+  document.documentElement.style.setProperty('--keyboard-h', kbH + 'px');
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', updateKeyboardOffset, { passive: true });
+  window.visualViewport.addEventListener('scroll', updateKeyboardOffset, { passive: true });
+}
+
 const API_BASE = (location.hostname==='localhost'||location.hostname==='127.0.0.1') ? location.origin : null;
 const $ = id => document.getElementById(id);
 
