@@ -11,7 +11,6 @@ const resultsList    = $('resultsList');
 const favTrackList   = $('favTrackList'), favsEmpty = $('favsEmpty');
 const favScrollWrap  = $('favScrollWrap'), favHorizList = $('favHorizList');
 const favCountEl     = $('favCount'), playlistCountEl = $('playlistCount');
-const playlistList   = $('playlistList');
 const miniPlayer     = $('miniPlayer'), miniProgressFill = $('miniProgressFill');
 const miniArt        = $('miniArt'), miniArtPh = $('miniArtPh');
 const miniTitle      = $('miniTitle'), miniArtist = $('miniArtist');
@@ -36,29 +35,41 @@ const haptic = t => tg?.HapticFeedback?.impactOccurred(t);
 const u = tg?.initDataUnsafe?.user;
 if (u) { profileName.textContent = u.first_name||u.username||'Пользователь'; profileAva.textContent = (u.first_name||'?')[0]; }
 
-/* ─── Tabs + sliding indicator ─────────────────────────────── */
-const tabSlider = $('tabSlider');
-const tabBtns   = document.querySelectorAll('.tab-btn');
+/* ─── Tabs + glass slider ───────────────────────────────────── */
+const glassSlider  = $('glassSlider');
+const tabBtns      = document.querySelectorAll('.tab-btn');
+const searchIsland = $('searchIsland');
 
 function moveSlider(btn) {
   const bar  = btn.closest('.tab-bar');
   const barR = bar.getBoundingClientRect();
   const btnR = btn.getBoundingClientRect();
-  tabSlider.style.left  = (btnR.left - barR.left) + 'px';
-  tabSlider.style.width = btnR.width + 'px';
+  glassSlider.style.left  = (btnR.left - barR.left) + 'px';
+  glassSlider.style.width = btnR.width + 'px';
+  glassSlider.style.opacity = '1';
 }
 
-tabBtns.forEach(btn => btn.addEventListener('click', () => {
+function switchTab(tabId, activeBtn) {
   tabBtns.forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  $(btn.dataset.tab).classList.add('active');
-  moveSlider(btn);
-  if (btn.dataset.tab === 'tabCollection') renderCollection();
+  searchIsland.classList.remove('active');
+  $(tabId).classList.add('active');
+  if (activeBtn) {
+    activeBtn.classList.add('active');
+    moveSlider(activeBtn);
+  } else {
+    /* search island — hide slider */
+    glassSlider.style.opacity = '0';
+    searchIsland.classList.add('active');
+  }
+  if (tabId === 'tabCollection') renderCollection();
   haptic('light');
-}));
+}
 
-/* Позиционируем слайдер на старте */
+tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn)));
+searchIsland.addEventListener('click', () => switchTab('tabSearch', null));
+
+/* Position slider on start */
 requestAnimationFrame(() => {
   const active = document.querySelector('.tab-btn.active');
   if (active) moveSlider(active);
@@ -200,8 +211,7 @@ function renderCollection() {
   renderTracks(favTrackList, favArr, -1);
 
   /* Плейлисты */
-  playlistCountEl.textContent=`${S.playlists.length} плейлистов`;
-  renderTracks(playlistList, [], -1);
+  playlistCountEl.textContent=`${S.playlists.length}`;
 }
 
 /* Клик добавить плейлист */

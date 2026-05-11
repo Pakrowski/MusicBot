@@ -11,7 +11,7 @@
   --text2:        rgba(255,255,255,0.48);
   --text3:        rgba(255,255,255,0.25);
   --red:          #ff453a;
-  --tabbar-h:     76px;  /* pill + gap */
+  --tabbar-h:     76px;
   --player-h:     66px;
   --safe-b:       env(safe-area-inset-bottom,0px);
   --safe-t:       env(safe-area-inset-top,0px);
@@ -57,7 +57,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text1);
   transition:border-color .2s;
 }
 .search-bar:focus-within{border-color:rgba(255,255,255,0.25)}
-.s-icon{width:17px;height:17px;color:var(--text2);flex-shrink:0}
+.s-ico{width:17px;height:17px;color:var(--text2);flex-shrink:0}
 #searchInput{flex:1;background:none;border:none;outline:none;
   color:var(--text1);font-size:15px}
 #searchInput::placeholder{color:var(--text2)}
@@ -123,18 +123,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text1);
 .track-fav svg{width:19px;height:19px;display:block}
 .track-fav.on svg{fill:var(--red);stroke:var(--red)}
 
-.track-more{background:none;border:none;cursor:pointer;
-  color:var(--text3);padding:8px 4px;flex-shrink:0}
-.track-more svg{width:18px;height:18px;display:block}
-
 /* ─── Collection: hero ──────────────────────────────────────── */
 .section-hero{
-  display:flex;align-items:center;gap:14px;padding:16px 16px 10px
+  display:flex;align-items:center;gap:14px;padding:16px 16px 10px;
+  cursor:pointer;
 }
 .hero-heart{width:56px;height:56px;flex-shrink:0}
 .hero-heart svg{width:56px;height:56px}
 .hero-title{font-size:18px;font-weight:700;display:flex;align-items:center;gap:4px}
-.hero-arrow{width:16px;height:16px;display:inline-block;vertical-align:middle}
+.hero-arr{width:16px;height:16px;display:inline-block;vertical-align:middle;opacity:.5}
 .hero-sub{font-size:13px;color:var(--text2);margin-top:3px}
 
 /* ─── Horizontal scroll ─────────────────────────────────────── */
@@ -161,12 +158,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text1);
   background:rgba(255,255,255,0.05);border-radius:10px;padding:10px 12px;
   border:1px solid var(--border);transition:background .12s}
 .collection-item:active{background:rgba(255,255,255,0.10)}
-.collection-thumb{width:40px;height:40px;border-radius:8px;flex-shrink:0;
-  background:rgba(255,255,255,0.10);display:flex;align-items:center;justify-content:center;color:var(--text2)}
-.collection-thumb svg{width:20px;height:20px}
-.add-thumb{border:1.5px dashed rgba(255,255,255,0.22)}
-.collection-name{font-size:13px;font-weight:600}
-.collection-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.coll-thumb{width:40px;height:40px;border-radius:8px;flex-shrink:0;
+  background:rgba(255,255,255,0.10);display:flex;align-items:center;justify-content:center;
+  color:var(--text2)}
+.coll-thumb svg{width:20px;height:20px}
+.coll-thumb.add{background:transparent;border:1.5px dashed rgba(255,255,255,0.22)}
+.coll-name{font-size:13px;font-weight:600}
+.coll-sub{font-size:11px;color:var(--text2);margin-top:1px}
 
 /* ─── Mini player ───────────────────────────────────────────── */
 .mini-player{
@@ -212,37 +210,66 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text1);
 .mini-fav.on svg{fill:var(--red);stroke:var(--red)}
 .mini-play-btn svg{width:25px;height:25px}
 
-/* ─── Tab bar ───────────────────────────────────────────────── */
-.tab-bar{
+/* ─── Tab bar wrapper ───────────────────────────────────────── */
+.tabbar-wrap{
   position:fixed;
   bottom:calc(10px + var(--safe-b));
   left:50%;transform:translateX(-50%);
   z-index:300;
+  display:flex;align-items:center;gap:10px;
+  /* prevent wrap from being narrower than pill+island */
+  white-space:nowrap;
+}
+
+/* ─── Main pill ─────────────────────────────────────────────── */
+.tab-bar{
+  position:relative;
   height:56px;
-  width:auto;min-width:260px;
   padding:0 6px;
   display:flex;align-items:center;
   border-radius:999px;
-  background:rgba(28,28,30,0.78);
-  backdrop-filter:blur(32px) saturate(180%);
-  -webkit-backdrop-filter:blur(32px) saturate(180%);
-  border:1px solid rgba(255,255,255,0.13);
-  box-shadow:0 8px 32px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.10);
+  background:rgba(28,28,30,0.82);
+  backdrop-filter:blur(40px) saturate(200%);
+  -webkit-backdrop-filter:blur(40px) saturate(200%);
+  border:1px solid rgba(255,255,255,0.14);
+  box-shadow:0 8px 32px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.12);
+  touch-action:pan-y;
+  user-select:none;
 }
 
-/* Скользящий индикатор */
-.tab-slider{
-  position:absolute;top:6px;left:6px;
+/* ─── Liquid glass slider ───────────────────────────────────── */
+.glass-slider{
+  position:absolute;top:6px;
   height:44px;border-radius:999px;
-  background:rgba(255,255,255,0.14);
-  border:1px solid rgba(255,255,255,0.16);
-  transition:left .28s cubic-bezier(.4,0,.2,1), width .28s cubic-bezier(.4,0,.2,1);
+  /* liquid glass core */
+  background:rgba(255,255,255,0.13);
+  backdrop-filter:blur(20px) saturate(220%);
+  -webkit-backdrop-filter:blur(20px) saturate(220%);
+  border:1px solid rgba(255,255,255,0.24);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,0.35),
+    inset 0 -1px 0 rgba(0,0,0,0.18),
+    0 6px 20px rgba(0,0,0,0.22);
+  transition:left .28s cubic-bezier(.4,0,.2,1),
+             width .28s cubic-bezier(.4,0,.2,1),
+             opacity .18s;
+  pointer-events:none;
+  will-change:left,width;
+}
+/* iridescent top highlight */
+.glass-slider::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(160deg,
+    rgba(255,255,255,0.28) 0%,
+    rgba(255,255,255,0.04) 55%,
+    rgba(180,160,255,0.08) 100%);
   pointer-events:none;
 }
 
+/* ─── Tab buttons ───────────────────────────────────────────── */
 .tab-btn{
   position:relative;z-index:1;
-  flex:1;background:none;border:none;cursor:pointer;
+  background:none;border:none;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;color:var(--text3);
   transition:color .2s,transform .12s;
@@ -250,9 +277,31 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text1);
 }
 .tab-btn:active{transform:scale(.88)}
 .tab-btn.active{color:var(--text1)}
-.tab-icon{display:flex;align-items:center;justify-content:center}
-.tab-icon svg{width:22px;height:22px}
+.tab-ico{width:22px;height:22px;display:block}
 .tab-btn span{font-size:10px;font-weight:500;letter-spacing:.1px}
+
+/* ─── Search island ─────────────────────────────────────────── */
+.search-island{
+  width:56px;height:56px;
+  border-radius:50%;flex-shrink:0;
+  background:rgba(28,28,30,0.82);
+  backdrop-filter:blur(40px) saturate(200%);
+  -webkit-backdrop-filter:blur(40px) saturate(200%);
+  border:1px solid rgba(255,255,255,0.14);
+  box-shadow:0 8px 32px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  color:var(--text3);
+  transition:color .2s,transform .12s,box-shadow .2s;
+}
+.search-island:active{transform:scale(.88)}
+.search-island.active{
+  color:var(--text1);
+  box-shadow:0 8px 32px rgba(0,0,0,0.6),
+             inset 0 1px 0 rgba(255,255,255,0.20),
+             inset 0 0 0 1px rgba(255,255,255,0.18);
+}
+.search-island svg{width:22px;height:22px}
 
 /* ─── Profile ───────────────────────────────────────────────── */
 .profile-block{display:flex;align-items:center;gap:13px;padding:16px}
@@ -267,4 +316,4 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text1);
 .settings-row{display:flex;justify-content:space-between;align-items:center;
   padding:13px 16px;font-size:14px}
 .s-val{color:var(--text2);font-size:13px}
-.s-divider{height:1px;background:var(--border);margin:0 16px}
+.s-div{height:1px;background:var(--border);margin:0 16px}
