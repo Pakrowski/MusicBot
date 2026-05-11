@@ -35,18 +35,24 @@ const haptic = t => tg?.HapticFeedback?.impactOccurred(t);
 const u = tg?.initDataUnsafe?.user;
 if (u) { profileName.textContent = u.first_name||u.username||'Пользователь'; profileAva.textContent = (u.first_name||'?')[0]; }
 
-/* ─── Tabs + glass slider ───────────────────────────────────── */
+/* ─── Tabs + glass slider + swipe ──────────────────────────── */
 const glassSlider  = $('glassSlider');
-const tabBtns      = document.querySelectorAll('.tab-btn');
+const tabBar       = $('tabBar');
+const tabBtns      = [...document.querySelectorAll('.tab-btn')];
 const searchIsland = $('searchIsland');
 
-function moveSlider(btn) {
-  const bar  = btn.closest('.tab-bar');
-  const barR = bar.getBoundingClientRect();
+/* Place slider over btn, optionally without animation */
+function placeSlider(btn, instant) {
+  const barR = tabBar.getBoundingClientRect();
   const btnR = btn.getBoundingClientRect();
-  glassSlider.style.left  = (btnR.left - barR.left) + 'px';
-  glassSlider.style.width = btnR.width + 'px';
+  if (instant) glassSlider.style.transition = 'none';
+  glassSlider.style.left    = (btnR.left - barR.left) + 'px';
+  glassSlider.style.width   = btnR.width + 'px';
   glassSlider.style.opacity = '1';
+  if (instant) {
+    glassSlider.getBoundingClientRect(); /* force reflow */
+    glassSlider.style.transition = '';
+  }
 }
 
 function switchTab(tabId, activeBtn) {
@@ -56,9 +62,8 @@ function switchTab(tabId, activeBtn) {
   $(tabId).classList.add('active');
   if (activeBtn) {
     activeBtn.classList.add('active');
-    moveSlider(activeBtn);
+    placeSlider(activeBtn, false);
   } else {
-    /* search island — hide slider */
     glassSlider.style.opacity = '0';
     searchIsland.classList.add('active');
   }
@@ -66,14 +71,55 @@ function switchTab(tabId, activeBtn) {
   haptic('light');
 }
 
+/* Tap */
 tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn)));
 searchIsland.addEventListener('click', () => switchTab('tabSearch', null));
 
-/* Position slider on start */
+/* Initial position — instant, no animation */
 requestAnimationFrame(() => {
   const active = document.querySelector('.tab-btn.active');
-  if (active) moveSlider(active);
+  if (active) placeSlider(active, true);
 });
+
+/* ─── Swipe / drag on pill ──────────────────────────────────── */
+let dragActive = false;
+let dragHover  = null;
+
+function btnAtX(x) {
+  /* find which tab-btn the x coordinate is over */
+  return tabBtns.find(b => {
+    const r = b.getBoundingClientRect();
+    return x >= r.left && x <= r.right;
+  }) || null;
+}
+
+tabBar.addEventListener('touchstart', e => {
+  dragActive = true;
+  dragHover  = null;
+}, { passive: true });
+
+tabBar.addEventListener('touchmove', e => {
+  if (!dragActive) return;
+  const x = e.touches[0].clientX;
+  const over = btnAtX(x);
+  if (over && over !== dragHover) {
+    dragHover = over;
+    /* preview: move slider instantly without committing tab */
+    placeSlider(over, false);
+    haptic('light');
+  }
+}, { passive: true });
+
+tabBar.addEventListener('touchend', e => {
+  if (!dragActive) return;
+  dragActive = false;
+  const x = e.changedTouches[0].clientX;
+  const over = btnAtX(x) || dragHover;
+  if (over) switchTab(over.dataset.tab, over);
+  dragHover = null;
+}, { passive: true });
+
+tabBar.addEventListener('touchcancel', () => { dragActive = false; dragHover = null; }, { passive: true });
 
 /* ─── Search ───────────────────────────────────────────────── */
 searchInput.addEventListener('input', () => {
