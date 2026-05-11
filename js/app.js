@@ -93,7 +93,7 @@ function btnAtX(x) {
   }) || null;
 }
 
-tabBar.addEventListener('touchstart', e => {
+tabBar.addEventListener('touchstart', () => {
   dragActive = true;
   dragHover  = null;
 }, { passive: true });
