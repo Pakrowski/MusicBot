@@ -62,18 +62,8 @@ if (u) {
   profileAva.textContent  = (u.first_name || u.username || '?')[0].toUpperCase();
 }
 
-/* ─── Tabs + glass slider ──────────────────────────────────── */
+/* ─── Tabs ─────────────────────────────────────────────────── */
 const tabBtns = [...document.querySelectorAll('.tab-btn')];
-
-function placeSlider(btn, instant) {
-  const barR = tabBar.getBoundingClientRect();
-  const btnR = btn.getBoundingClientRect();
-  if (instant) glassSlider.style.transition = 'none';
-  glassSlider.style.left    = (btnR.left - barR.left) + 'px';
-  glassSlider.style.width   = btnR.width + 'px';
-  glassSlider.style.opacity = '1';
-  if (instant) { glassSlider.getBoundingClientRect(); glassSlider.style.transition = ''; }
-}
 
 function switchTab(tabId, activeBtn) {
   tabBtns.forEach(b => b.classList.remove('active'));
@@ -83,12 +73,8 @@ function switchTab(tabId, activeBtn) {
 
   if (activeBtn) {
     activeBtn.classList.add('active');
-    placeSlider(activeBtn, false);
   } else {
-    /* search island active → hide pill slider */
-    glassSlider.style.opacity = '0';
     searchIsland.classList.add('active');
-    /* auto-focus search input */
     setTimeout(() => searchInput.focus(), 120);
   }
 
@@ -101,12 +87,6 @@ function switchTab(tabId, activeBtn) {
 tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn)));
 searchIsland.addEventListener('click', () => switchTab('tabSearch', null));
 
-/* Initial slider position — instant, no animation flash */
-requestAnimationFrame(() => {
-  const active = document.querySelector('.tab-btn.active');
-  if (active) placeSlider(active, true);
-});
-
 /* ─── Swipe drag on pill ───────────────────────────────────── */
 let dragOn = false, dragOver = null;
 
@@ -118,15 +98,34 @@ tabBar.addEventListener('touchstart', () => { dragOn = true; dragOver = null; },
 tabBar.addEventListener('touchmove', e => {
   if (!dragOn) return;
   const over = btnAtX(e.touches[0].clientX);
-  if (over && over !== dragOver) { dragOver = over; placeSlider(over, false); haptic('light'); }
+  if (over && over !== dragOver) {
+    dragOver = over;
+    /* Live preview: temporarily mark button as active */
+    tabBtns.forEach(b => b.classList.remove('active'));
+    over.classList.add('active');
+    haptic('light');
+  }
 }, { passive: true });
 tabBar.addEventListener('touchend', e => {
   if (!dragOn) return; dragOn = false;
   const over = btnAtX(e.changedTouches[0].clientX) || dragOver;
   if (over) switchTab(over.dataset.tab, over);
+  else {
+    /* Restore active state if swipe cancelled */
+    const curr = document.querySelector('.tab-page.active');
+    if (curr) {
+      const btn = tabBtns.find(b => b.dataset.tab === curr.id);
+      if (btn) btn.classList.add('active');
+    }
+  }
   dragOver = null;
 }, { passive: true });
-tabBar.addEventListener('touchcancel', () => { dragOn = false; dragOver = null; }, { passive: true });
+tabBar.addEventListener('touchcancel', () => {
+  dragOn = false; dragOver = null;
+  /* Restore */
+  const curr = document.querySelector('.tab-page.active');
+  if (curr) { const b = tabBtns.find(b => b.dataset.tab === curr.id); if (b) b.classList.add('active'); }
+}, { passive: true });
 
 /* ─── Track item HTML ──────────────────────────────────────── */
 function trackItemHTML(t, i, activeIdx) {
