@@ -10,7 +10,7 @@
   --surface:    rgba(255,255,255,0.06);
   --border:     rgba(255,255,255,0.09);
   --blur:       blur(28px) saturate(180%);
-  --tabbar-h:   68px;
+  --tabbar-h:   78px;
   --player-h:   66px;
   --safe-b:     env(safe-area-inset-bottom,0px);
   --safe-t:     env(safe-area-inset-top,0px);
@@ -23,7 +23,11 @@ html,body{
   -webkit-font-smoothing:antialiased;
 }
 
-.app{position:relative;height:100vh;overflow:hidden}
+.app{
+  position:relative;height:100vh;overflow:hidden;
+  /* subtle gradient so frosted glass has something to blur against */
+  background:radial-gradient(ellipse at 50% 110%, rgba(35,35,55,0.55) 0%, #000 58%);
+}
 
 /* ─── Glass surface ─────────────────────────────────────────── */
 .glass{
@@ -240,12 +244,12 @@ html,body{
   position:fixed;
   bottom:calc(var(--tabbar-h) + var(--safe-b) + 8px + var(--keyboard-h));
   left:12px;right:12px;height:var(--player-h);z-index:200;
-  border-radius:20px;
-  background:rgba(24,24,28,0.88);
-  backdrop-filter:blur(40px) saturate(200%);
-  -webkit-backdrop-filter:blur(40px) saturate(200%);
-  border:1px solid rgba(255,255,255,0.12);
-  box-shadow:0 10px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.09);
+  border-radius:22px;
+  background:rgba(18,18,22,0.58);
+  backdrop-filter:blur(44px) saturate(220%);
+  -webkit-backdrop-filter:blur(44px) saturate(220%);
+  border:1px solid rgba(255,255,255,0.13);
+  box-shadow:0 10px 40px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.09);
   overflow:hidden;
   transition:bottom .22s ease;
 }
@@ -290,56 +294,63 @@ html,body{
 /* ─── Main pill ─────────────────────────────────────────────── */
 .tab-bar{
   position:relative;
-  height:56px;padding:0 6px;
+  height:64px;padding:0 6px;
   display:flex;align-items:center;
   border-radius:999px;
-  background:rgba(24,24,28,0.90);
-  backdrop-filter:blur(40px) saturate(200%);
-  -webkit-backdrop-filter:blur(40px) saturate(200%);
-  border:1px solid rgba(255,255,255,0.12);
-  box-shadow:0 8px 32px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.10);
+  /* Translucent like Apple Music — content bleeds through */
+  background:rgba(18,18,22,0.52);
+  backdrop-filter:blur(44px) saturate(220%);
+  -webkit-backdrop-filter:blur(44px) saturate(220%);
+  border:1px solid rgba(255,255,255,0.13);
+  box-shadow:0 10px 40px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.10);
   touch-action:none;user-select:none;
+  overflow:visible; /* allow slider to protrude above/below */
 }
 
-/* ─── Dark glass bubble slider with prismatic rim ───────────── */
+/* ─── Dark glass bubble — protrudes above/below pill ────────── */
 .glass-slider{
-  position:absolute;top:5px;
-  height:46px;border-radius:999px;
+  position:absolute;
+  /* Protrude 7px above bar top and 7px below bar bottom */
+  top:-7px;
+  height:78px; /* 64(bar) + 7*2 */
+  border-radius:999px;
   opacity:0;
 
-  /* Dark glass material */
-  background:rgba(50,50,56,0.97);
-  backdrop-filter:blur(24px) saturate(200%);
-  -webkit-backdrop-filter:blur(24px) saturate(200%);
+  /* Dark glass — slightly lighter than the bar so it "pops" */
+  background:rgba(44,44,50,0.94);
+  backdrop-filter:blur(28px) saturate(220%) brightness(1.06);
+  -webkit-backdrop-filter:blur(28px) saturate(220%) brightness(1.06);
 
-  /* Depth / 3D raised look */
+  /* 3D raised depth */
   box-shadow:
-    0 4px 20px rgba(0,0,0,0.55),
-    0 1px 3px rgba(0,0,0,0.4),
-    inset 0 1px 0 rgba(255,255,255,0.12),
-    inset 0 -1px 0 rgba(0,0,0,0.28);
+    0 6px 28px rgba(0,0,0,0.65),
+    0 2px 6px rgba(0,0,0,0.45),
+    inset 0 1.5px 0 rgba(255,255,255,0.14),
+    inset 0 -1.5px 0 rgba(0,0,0,0.32);
 
   transition:left .27s cubic-bezier(.4,0,.2,1),
              width .27s cubic-bezier(.4,0,.2,1),
              opacity .22s;
   pointer-events:none;
   will-change:left,width,opacity;
+  z-index:0;
 }
 
-/* Prismatic/iridescent rim — conic gradient masked to border only */
+/* Vivid prismatic rim — 2.5px wide, full-saturation pure colors */
 .glass-slider::before{
   content:'';
-  position:absolute;inset:-1.5px;
-  border-radius:999px;padding:1.5px;
+  position:absolute;inset:-2.5px;
+  border-radius:999px;padding:2.5px;
   background:conic-gradient(
-    from 210deg at 50% 50%,
-    rgba(178,130,255,0.9)  0%,
-    rgba(80,165,255,0.82) 17%,
-    rgba(55,220,185,0.65) 34%,
-    rgba(255,215,70,0.60) 51%,
-    rgba(255,85,110,0.82) 68%,
-    rgba(210,75,255,0.88) 85%,
-    rgba(178,130,255,0.9) 100%
+    from 205deg at 50% 50%,
+    rgba(175,0,255,1)    0%,
+    rgba(0,90,255,1)    14%,
+    rgba(0,200,255,0.9) 28%,
+    rgba(0,255,120,0.8) 42%,
+    rgba(200,255,0,0.8) 56%,
+    rgba(255,80,0,1)    70%,
+    rgba(255,0,160,1)   84%,
+    rgba(175,0,255,1)   100%
   );
   -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
   -webkit-mask-composite:xor;
@@ -348,14 +359,15 @@ html,body{
   pointer-events:none;
 }
 
-/* Convex glass top highlight */
+/* Convex lens highlight — top glow */
 .glass-slider::after{
   content:'';
-  position:absolute;inset:0;
-  border-radius:inherit;
+  position:absolute;
+  top:0;left:12%;right:12%;height:46%;
+  border-radius:999px 999px 50% 50%;
   background:linear-gradient(180deg,
-    rgba(255,255,255,0.11) 0%,
-    transparent 55%);
+    rgba(255,255,255,0.12) 0%,
+    transparent 100%);
   pointer-events:none;
 }
 
@@ -363,26 +375,26 @@ html,body{
 .tab-btn{
   position:relative;z-index:1;
   background:none;border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  color:var(--text3);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;color:var(--text3);
   transition:color .2s,transform .14s;
-  padding:0 22px;height:56px;border-radius:999px;
+  padding:0 20px;height:64px;border-radius:999px;
   -webkit-tap-highlight-color:transparent;
 }
 .tab-btn:active{transform:scale(.86)}
 .tab-btn.active{color:var(--text1)}
 .tab-ico{width:22px;height:22px;display:block}
-.tab-btn span{display:none}
+.tab-btn span{display:block;font-size:10px;font-weight:500;letter-spacing:0.1px;line-height:1}
 
 /* ─── Search island ─────────────────────────────────────────── */
 .search-island{
-  width:56px;height:56px;border-radius:50%;
+  width:64px;height:64px;border-radius:50%;
   position:relative;overflow:visible;
-  background:rgba(24,24,28,0.90);
-  backdrop-filter:blur(40px) saturate(200%);
-  -webkit-backdrop-filter:blur(40px) saturate(200%);
-  border:1px solid rgba(255,255,255,0.12);
-  box-shadow:0 8px 32px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.10);
+  background:rgba(18,18,22,0.52);
+  backdrop-filter:blur(44px) saturate(220%);
+  -webkit-backdrop-filter:blur(44px) saturate(220%);
+  border:1px solid rgba(255,255,255,0.13);
+  box-shadow:0 10px 40px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.10);
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;color:var(--text3);
   transition:color .2s,transform .14s,background .22s,border-color .22s,box-shadow .22s;
@@ -390,30 +402,31 @@ html,body{
 }
 .search-island:active{transform:scale(.86)}
 
-/* Active: dark glass bubble identical to tab slider */
+/* Active: same dark glass bubble as slider */
 .search-island.active{
   color:var(--text1);
-  background:rgba(50,50,56,0.97);
+  background:rgba(44,44,50,0.94);
   border-color:transparent;
   box-shadow:
-    0 4px 20px rgba(0,0,0,0.55),
-    inset 0 1px 0 rgba(255,255,255,0.12),
-    inset 0 -1px 0 rgba(0,0,0,0.28);
+    0 6px 28px rgba(0,0,0,0.65),
+    inset 0 1.5px 0 rgba(255,255,255,0.14),
+    inset 0 -1.5px 0 rgba(0,0,0,0.32);
 }
-/* Same prismatic rim on active island */
+/* Same vivid prismatic rim */
 .search-island.active::before{
   content:'';
-  position:absolute;inset:-1.5px;
-  border-radius:50%;padding:1.5px;
+  position:absolute;inset:-2.5px;
+  border-radius:50%;padding:2.5px;
   background:conic-gradient(
-    from 210deg at 50% 50%,
-    rgba(178,130,255,0.9)  0%,
-    rgba(80,165,255,0.82) 17%,
-    rgba(55,220,185,0.65) 34%,
-    rgba(255,215,70,0.60) 51%,
-    rgba(255,85,110,0.82) 68%,
-    rgba(210,75,255,0.88) 85%,
-    rgba(178,130,255,0.9) 100%
+    from 205deg at 50% 50%,
+    rgba(175,0,255,1)    0%,
+    rgba(0,90,255,1)    14%,
+    rgba(0,200,255,0.9) 28%,
+    rgba(0,255,120,0.8) 42%,
+    rgba(200,255,0,0.8) 56%,
+    rgba(255,80,0,1)    70%,
+    rgba(255,0,160,1)   84%,
+    rgba(175,0,255,1)   100%
   );
   -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
   -webkit-mask-composite:xor;
