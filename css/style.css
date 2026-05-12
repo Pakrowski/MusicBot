@@ -308,25 +308,11 @@ html,body{
   overflow:visible; /* allow slider to protrude above/below */
 }
 
-/* ─── Glass slider — now hidden, bubble lives on the button ──── */
-.glass-slider{ display:none; }
-
-/* ─── Tab buttons ───────────────────────────────────────────── */
-.tab-btn{
-  position:relative;z-index:1;
-  background:none;border:none;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;color:var(--text3);
-  transition:color .22s, background .22s, box-shadow .22s, transform .14s;
-  padding:0 20px;height:64px;border-radius:999px;
-  -webkit-tap-highlight-color:transparent;
-  overflow:visible;
-}
-.tab-btn:active{transform:scale(.86)}
-
-/* Active: accent color + dark glass bubble */
-.tab-btn.active{
-  color:var(--accent);
+/* ─── Glass slider — sliding pill inside the tab bar ─────────── */
+.glass-slider{
+  position:absolute;
+  top:6px;height:52px;
+  border-radius:999px;
   background:rgba(44,44,50,0.94);
   backdrop-filter:blur(28px) saturate(220%) brightness(1.06);
   -webkit-backdrop-filter:blur(28px) saturate(220%) brightness(1.06);
@@ -335,10 +321,13 @@ html,body{
     0 2px 6px rgba(0,0,0,0.4),
     inset 0 1.5px 0 rgba(255,255,255,0.13),
     inset 0 -1.5px 0 rgba(0,0,0,0.30);
+  transition:left .26s cubic-bezier(.34,1.2,.64,1),width .26s cubic-bezier(.34,1.2,.64,1);
+  pointer-events:none;
+  z-index:0;
+  overflow:visible;
 }
-
-/* Vivid prismatic rim on active button */
-.tab-btn.active::before{
+/* Vivid prismatic rim on slider */
+.glass-slider::before{
   content:'';
   position:absolute;inset:-2px;
   border-radius:999px;padding:2px;
@@ -358,11 +347,9 @@ html,body{
   mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
   mask-composite:exclude;
   pointer-events:none;
-  z-index:-1;
 }
-
-/* Convex top highlight on active button */
-.tab-btn.active::after{
+/* Convex top highlight on slider */
+.glass-slider::after{
   content:'';
   position:absolute;
   top:1px;left:18%;right:18%;height:38%;
@@ -370,6 +357,21 @@ html,body{
   background:linear-gradient(180deg,rgba(255,255,255,0.11) 0%,transparent 100%);
   pointer-events:none;
 }
+
+/* ─── Tab buttons ───────────────────────────────────────────── */
+.tab-btn{
+  position:relative;z-index:1;
+  background:none;border:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;color:var(--text3);
+  transition:color .22s,transform .14s;
+  padding:0 20px;height:64px;border-radius:999px;
+  -webkit-tap-highlight-color:transparent;
+}
+.tab-btn:active{transform:scale(.86)}
+
+/* Active: accent color only — glass bubble is the slider */
+.tab-btn.active{ color:var(--accent); }
 
 .tab-ico{width:22px;height:22px;display:block;position:relative;z-index:1}
 .tab-btn span{display:block;font-size:10px;font-weight:500;letter-spacing:0.1px;line-height:1;position:relative;z-index:1}

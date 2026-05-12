@@ -65,6 +65,15 @@ if (u) {
 /* ─── Tabs ─────────────────────────────────────────────────── */
 const tabBtns = [...document.querySelectorAll('.tab-btn')];
 
+function placeSlider(btn, animate) {
+  const barRect = tabBar.getBoundingClientRect();
+  const btnRect = btn.getBoundingClientRect();
+  if (!animate) glassSlider.style.transition = 'none';
+  glassSlider.style.left  = (btnRect.left - barRect.left) + 'px';
+  glassSlider.style.width = btnRect.width + 'px';
+  if (!animate) { glassSlider.getBoundingClientRect(); glassSlider.style.transition = ''; }
+}
+
 function switchTab(tabId, activeBtn) {
   tabBtns.forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
@@ -73,8 +82,11 @@ function switchTab(tabId, activeBtn) {
 
   if (activeBtn) {
     activeBtn.classList.add('active');
+    glassSlider.style.display = '';
+    placeSlider(activeBtn, true);
   } else {
     searchIsland.classList.add('active');
+    glassSlider.style.display = 'none';
     setTimeout(() => searchInput.focus(), 120);
   }
 
@@ -86,6 +98,12 @@ function switchTab(tabId, activeBtn) {
 
 tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn)));
 searchIsland.addEventListener('click', () => switchTab('tabSearch', null));
+
+/* ─── Initial slider position (no animation) ──────────────── */
+requestAnimationFrame(() => {
+  const active = tabBtns.find(b => b.classList.contains('active'));
+  if (active) placeSlider(active, false);
+});
 
 /* ─── Swipe drag on pill ───────────────────────────────────── */
 let dragOn = false, dragOver = null;
@@ -100,9 +118,10 @@ tabBar.addEventListener('touchmove', e => {
   const over = btnAtX(e.touches[0].clientX);
   if (over && over !== dragOver) {
     dragOver = over;
-    /* Live preview: temporarily mark button as active */
     tabBtns.forEach(b => b.classList.remove('active'));
     over.classList.add('active');
+    glassSlider.style.display = '';
+    placeSlider(over, true);
     haptic('light');
   }
 }, { passive: true });
@@ -111,20 +130,21 @@ tabBar.addEventListener('touchend', e => {
   const over = btnAtX(e.changedTouches[0].clientX) || dragOver;
   if (over) switchTab(over.dataset.tab, over);
   else {
-    /* Restore active state if swipe cancelled */
     const curr = document.querySelector('.tab-page.active');
     if (curr) {
       const btn = tabBtns.find(b => b.dataset.tab === curr.id);
-      if (btn) btn.classList.add('active');
+      if (btn) { btn.classList.add('active'); glassSlider.style.display = ''; placeSlider(btn, true); }
     }
   }
   dragOver = null;
 }, { passive: true });
 tabBar.addEventListener('touchcancel', () => {
   dragOn = false; dragOver = null;
-  /* Restore */
   const curr = document.querySelector('.tab-page.active');
-  if (curr) { const b = tabBtns.find(b => b.dataset.tab === curr.id); if (b) b.classList.add('active'); }
+  if (curr) {
+    const b = tabBtns.find(b => b.dataset.tab === curr.id);
+    if (b) { b.classList.add('active'); glassSlider.style.display = ''; placeSlider(b, true); }
+  }
 }, { passive: true });
 
 /* ─── Track item HTML ──────────────────────────────────────── */
